@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Chart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #2c5e79, #3c5bba);
+        }
+
+        
+
+        .highcharts-figure,
+        .highcharts-data-table table {
+            min-width: 310px;
+            max-width: 800px;
+            margin: 1em auto;
+        }
+
+        .highcharts-data-table table {
+            font-family: Verdana, sans-serif;
+            border-collapse: collapse;
+            border: 1px solid #ebebeb;
+            margin: 10px auto;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .highcharts-data-table caption {
+            padding: 1em 0;
+            font-size: 1.2em;
+            color: #555;
+        }
+
+        .highcharts-data-table th {
+            font-weight: 600;
+            padding: 0.5em;
+        }
+
+        .highcharts-data-table td,
+        .highcharts-data-table th,
+        .highcharts-data-table caption {
+            padding: 0.5em;
+        }
+
+        .highcharts-data-table thead tr,
+        .highcharts-data-table tr:nth-child(even) {
+            background: #f8f8f8;
+        }
+
+        .highcharts-data-table tr:hover {
+            background: #f1f7ff;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .search-box {
+            width: 70%;
+            height: 40px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .search-button {
+            width: 150px;
+            height: 50px;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <center>
+        <h1>Weather Chart</h1>
+    </center>
+
+    <div class="search-container">
+        <input class="search-box" type="search" id="input-field" placeholder="Search" aria-label="Search">
+        <button class="search-button" id="search-button" type="submit">Search</button>
+    </div>
+
+  <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div id="container"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="lineChart"></div>
+            </div>
+            <div class="col-md-6 mt-5">
+                <div id="container2"></div>
+            </div>
+            <div class="col-md-6 mt-5">
+                <div id="container3"></div>
+            </div>
+        </div>
+  </div>
+
+    
+
+
+
+
+
+
+
+
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <script>
+       // Function to fetch weather data and display the chart
+        function fetchWeatherData(city) {
+            var apiKey = '61766f013d866e53e3632ae06a816767'; // Replace with your own API key
+            var url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    var tempValues = data.list.map(item => item.main.temp);
+                    var tempMinValues = data.list.map(item => item.main.temp_min);
+                    var tempMaxValues = data.list.map(item => item.main.temp_max);
+                    var pressureValues = data.list.map(item => item.main.pressure);
+                    var humidityValues = data.list.map(item => item.main.humidity);
+
+                    Highcharts.chart('container', {
+                        chart: {
+                            type: 'pie'
+                        },
+                        title: {
+                            text: `Weather Forecast for ${city}`
+                        },
+                        series: [{
+                            name: 'Temperature',
+                            data: [
+                                { name: 'Min Temperature', y: Math.min(...tempValues) },
+                                { name: 'Max Temperature', y: Math.max(...tempValues) }
+                            ]
+                        }]
+                    });
+                });
+        }
+
+        // Initial API call to fetch weather data for Ethiopia
+        fetchWeatherData('Ethiopia');
+
+        // Event listener for the search button
+        document.getElementById('search-button').addEventListener('click', function (event) {
+            event.preventDefault();
+            var city = document.getElementById('input-field').value;
+            fetchWeatherData(city);
+        });
+
+         
+
+
+        fetch('https://api.covidtracking.com/v1/us/daily.json')
+            .then(response => response.json())
+            .then(data => {
+                const chartData = data.reverse(); // Reverse data array for chronological order
+
+                // Extract years and population values
+                const years = chartData.map(entry => entry.date);
+                const dataPositive = chartData.map(entry => entry.positive);
+
+                // Line Chart
+                Highcharts.chart('lineChart', {
+                    chart: {
+                        backgroundColor: '#3c5bba',
+                    },
+                    title: {
+                        text: 'Current US values Of Covid-19'
+                    },
+                    xAxis: {
+                        categories: chartData.map(entry => entry.date)
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Covid-19 postive test result per day'
+                        }
+                    },
+                    series: [{
+                        name: 'Data Positive',
+                        data: dataPositive
+                    }]
+                });
+            })
+            .catch(error => {
+                console.log('Error fetching data:', error);
+            });
+
+
+            fetch('https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Extract the relevant data from the API response
+                        const countriesData = data[1];
+
+                        // Prepare the data for Highcharts
+                        const chartData = countriesData.map(countryData => ({
+                            name: countryData.country.value,
+                            y: parseFloat(countryData.value)
+                        }));
+
+                        // Create the Highcharts chart
+                        Highcharts.chart('container2', {
+                            chart: {
+                                type: 'pie'
+                            },
+                            title: {
+                                text: 'World Population by Country'
+                            },
+                            series: [{
+                                name: 'Population',
+                                data: chartData
+                            }]
+                        });
+                    });
+
+                    fetch('https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL?format=json')
+                            .then(response => response.json())
+                            .then(data => {
+                                // Extract the relevant data from the API response
+                                const countriesData = data[1];
+
+                                // Prepare the data for Highcharts
+                                const chartData = countriesData.map(countryData => ({
+                                    name: countryData.country.value,
+                                    y: parseFloat(countryData.value)
+                                }));
+
+                                // Create the Highcharts chart
+                                Highcharts.chart('container3', {
+                                    chart: {
+                                        type: 'bar' // Change the chart type to 'bar'
+                                    },
+                                    title: {
+                                        text: 'World Population by Country'
+                                    },
+                                    xAxis: {
+                                        categories: chartData.map(data => data.name) // Use country names as x-axis categories
+                                    },
+                                    yAxis: {
+                                        title: {
+                                            text: 'Population'
+                                        }
+                                    },
+                                    series: [{
+                                        name: 'Population',
+                                        data: chartData.map(data => data.y) // Use population values as data
+                                    }]
+                                });
+                            });
+
+
+
+    </script>
+</body>
+
+</html>
